@@ -1,7 +1,7 @@
 class PlaysoundException(Exception):
     pass
 
-def _playsoundWin(sound, block = True):
+def _playsoundWin(sound, block = True, duration_ms = None):
     '''
     Utilizes windll.winmm. Tested and known to work with MP3 and WAVE on
     Windows 7 with Python 2.7. Probably works with more file formats.
@@ -34,11 +34,16 @@ def _playsoundWin(sound, block = True):
     alias = 'playsound_' + str(random())
     winCommand('open "' + sound + '" alias', alias)
     winCommand('set', alias, 'time format milliseconds')
-    durationInMS = winCommand('status', alias, 'length')
-    winCommand('play', alias, 'from 0 to', durationInMS.decode())
+    duration_ms_file = int(winCommand('status', alias, 'length').decode())
+    if duration_ms:
+        duration_ms_user = int(duration_ms)
+        duration = min(duration_ms_user, duration_ms_file)
+    else:
+        duration = duration_ms_file
+    winCommand('play', alias, 'from 0 to', str(duration))
 
     if block:
-        sleep(float(durationInMS) / 1000.0)
+        sleep(duration / 1000.0)
 
 def _playsoundOSX(sound, block = True):
     '''
